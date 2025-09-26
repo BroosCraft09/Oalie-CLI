@@ -1,0 +1,14 @@
+hLo
+ls
+help
+git
+le
+ls
+cd
+exit
+help
+ls
+exit
+oalie-hello
+p
+exit
