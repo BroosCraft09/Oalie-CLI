@@ -12,3 +12,11 @@ exit
 oalie-hello
 p
 exit
+ls
+help
+oalie-hello
+exit
+plsp
+ieieue
+oalie-hello
+exit
