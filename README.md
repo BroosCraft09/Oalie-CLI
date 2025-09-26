@@ -36,12 +36,14 @@ namacommand
 
 ## ✨ Command List
 
+```bash
 · oalie-ver - Versi Oalie
 · oalie-sys - Info sistem
 · oalie-cmd create <name> - Buat command baru
 · oalie-cmd list - Lihat custom commands
 · oalie-cmd edit <name> - Edit command
 · exit - Keluar dari Oalie
+```
 
 ## 💡 Contoh Custom Command
 
