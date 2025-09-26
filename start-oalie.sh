@@ -1,63 +1,99 @@
 #!/bin/bash
-# Oalie CLI v1.1
+# Oalie CLI v1.2 - Major Update
 
-clear
+VERSION="1.2"
+OALIE_HOME="$HOME/Oalie"
+CONF_FILE="$OALIE_HOME/etc/oalie.conf"
+LOG_FILE="$OALIE_HOME/log/oalie.log"
 
-# Banner
-cat << "EOF"
-   ██████╗  █████╗ ██╗     ██╗███████╗     ██████╗██╗     ██╗
-  ██╔═══██╗██╔══██╗██║     ██║██╔════╝    ██╔════╝██║     ██║
-  ██║   ██║███████║██║     ██║███████╗    ██║     ██║     ██║
-  ██║   ██║██╔══██║██║     ██║██╔════╝    ██║     ██║     ██║
-  ╚██████╔╝██║  ██║███████╗██║███████╗    ╚██████╗███████╗██║
-   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝     ╚═════╝╚══════╝╚═╝
-
-             Welcome to Oalie CLI v1.1
-============================================================
-EOF
-
-# Pastikan folder home ada
-if [ ! -d "$HOME/Oalie/home" ]; then
-    mkdir -p "$HOME/Oalie/home"
+# ====== Load Config ======
+if [ -f "$CONF_FILE" ]; then
+    source "$CONF_FILE"
+else
+    USERNAME=$(whoami)
+    PROMPT_COLOR="\e[32m"
 fi
 
-# Info environment
-echo "[ Oalie CLI - Environment Booted ]"
-echo "User    : $USER"
-echo "Home    : $HOME/Oalie/home"
-echo "Shell   : $SHELL"
-echo "Rootfs  : $HOME/Oalie"
-echo "Date    : $(date)"
-echo "Uptime  : $(uptime -p)"
+# ====== Banner ======
+clear
+cat << "EOF"
+   ██████╗  █████╗ ██╗     ██╗███████╗      ██████╗██╗     ██╗
+  ██╔═══██╗██╔══██╗██║     ██║██╔════╝     ██╔════╝██║     ██║
+  ██║   ██║███████║██║     ██║█████╗       ██║     ██║     ██║
+  ██║   ██║██╔══██║██║     ██║██╔══╝       ██║     ██║     ██║
+  ╚██████╔╝██║  ██║███████╗██║███████╗     ╚██████╗███████╗██║
+   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝      ╚═════╝╚══════╝╚═╝
+EOF
 echo "============================================================"
-echo
+echo " Welcome to Oalie CLI v$VERSION"
+echo "============================================================"
+echo "User   : $USERNAME"
+echo "Shell  : $(basename $SHELL)"
+echo "Rootfs : /"
+echo "Date   : $(date)"
+echo "============================================================"
 
-# Fungsi command custom
-oalie_help() {
-    echo "Oalie CLI v1.1 - Custom Commands"
-    echo "  oalie-help   : Show this help"
-    echo "  oalie-about  : About Oalie CLI"
-    echo "  oalie-clear  : Clear screen with banner"
+# ====== Custom Commands ======
+oalie-ver() {
+    echo "Oalie CLI version $VERSION"
 }
 
-oalie_about() {
-    echo "Oalie CLI v1.1"
-    echo "Created for Termux experiment."
-    echo "This is a mini custom Linux-like environment."
+oalie-help() {
+    echo "=== Oalie CLI Commands ==="
+    echo "oalie-ver       : Cek versi"
+    echo "oalie-help      : Lihat command khusus"
+    echo "oalie-uptime    : Uptime sistem"
+    echo "oalie-sys       : Info sistem (mini neofetch)"
+    echo "oalie-clear     : Bersihin layar + reload banner"
+    echo "oalie-pkg list  : Lihat daftar package"
+    echo "oalie-pkg install <pkg> : Install package palsu"
 }
 
-oalie_clear() {
+oalie-uptime() {
+    echo "System Uptime: $(uptime -p)"
+}
+
+oalie-sys() {
+    echo "=== Oalie System Info ==="
+    echo "User   : $USERNAME"
+    echo "Shell  : $(basename $SHELL)"
+    echo "OS     : Oalie CLI $VERSION"
+    echo "Uptime : $(uptime -p)"
+    echo "Date   : $(date)"
+}
+
+oalie-clear() {
     clear
-    bash "$HOME/Oalie/start-oalie.sh"
+    bash "$OALIE_HOME/start-oalie.sh"
 }
 
-# Export command ke shell
-alias oalie-help=oalie_help
-alias oalie-about=oalie_about
-alias oalie-clear=oalie_clear
+oalie-pkg() {
+    case "$1" in
+        list)
+            echo "=== Available Packages ==="
+            echo "nano  vim  curl  git  neofetch"
+            ;;
+        install)
+            if [ -z "$2" ]; then
+                echo "Usage: oalie-pkg install <package>"
+            else
+                echo "Installing $2 ... done (simulated)."
+            fi
+            ;;
+        *)
+            echo "Usage: oalie-pkg [list|install <pkg>]"
+            ;;
+    esac
+}
 
-# Masuk ke 'home' Oalie
-cd "$HOME/Oalie/home"
-
-# Start interactive shell
-exec bash --login
+# ====== Custom Prompt ======
+while true; do
+    echo -ne "${PROMPT_COLOR}[oalie@cli ~]$ \e[0m"
+    read -e CMD
+    echo "$(date) | $CMD" >> "$LOG_FILE"
+    if declare -f "$CMD" > /dev/null; then
+        $CMD
+    else
+        bash -c "$CMD"
+    fi
+done
