@@ -1,15 +1,15 @@
-Oalie CLI 
+# Oalie CLI 
 
 Lightweight custom shell dengan kemampuan membuat command sendiri.
 
-🚀 Fitur Utama
+## 🚀 Fitur Utama
 
 · Custom Command Creator - Buat command sendiri
 · Command Management - Create, list, edit, delete commands
 · Built-in Utilities - System info, package manager, dll
 · Termux Compatible - Work di Android dan Linux
 
-📦 Instalasi Cepat
+## 📦 Instalasi Cepat
 
 ```bash
 cd ~
@@ -18,7 +18,7 @@ CD Oalie-CLI
 ./start-oalie.sh
 ```
 
-🎯 Basic Usage
+## 🎯 Basic Usage
 
 ```bash
 # Lihat semua command
@@ -34,7 +34,7 @@ oalie-cmd edit namacommand
 namacommand
 ```
 
-✨ Command List
+## ✨ Command List
 
 · oalie-ver - Versi Oalie
 · oalie-sys - Info sistem
@@ -43,7 +43,7 @@ namacommand
 · oalie-cmd edit <name> - Edit command
 · exit - Keluar dari Oalie
 
-💡 Contoh Custom Command
+## 💡 Contoh Custom Command
 
 ```bash
 oalie-cmd create hello
