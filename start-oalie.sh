@@ -2,7 +2,7 @@
 # Oalie CLI v1.4 - Advanced Edition
 
 VERSION="1.4"
-OALIE_HOME="$HOME/Oalie"
+OALIE_HOME="$HOME/Oalie-CLI"
 OALIE_BIN="$OALIE_HOME/bin"
 OALIE_ETC="$OALIE_HOME/etc"
 OALIE_LOG="$OALIE_HOME/log"
