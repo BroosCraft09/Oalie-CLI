@@ -1,7 +1,7 @@
 #!/bin/bash
-# Oalie CLI v1.4 - Advanced Edition
+# Oalie CLI v1.5 - Enhanced Edition
 
-VERSION="1.4"
+VERSION="1.5"
 OALIE_HOME="$HOME/Oalie-CLI"
 OALIE_BIN="$OALIE_HOME/bin"
 OALIE_ETC="$OALIE_HOME/etc"
@@ -35,15 +35,60 @@ fi
 # ====== Change to Oalie Home Directory ======
 cd "$OALIE_HOME_DIR" 2>/dev/null || mkdir -p "$OALIE_HOME_DIR" && cd "$OALIE_HOME_DIR"
 
+# ====== Auto Update Function ======
+auto_update() {
+    echo "🔄 Starting auto-update..."
+    
+    # URLs for update
+    SCRIPT_URL="https://raw.githubusercontent.com/BroosCraft09/Oalie-CLI/main/start-oalie.sh"
+    MAIN_SCRIPT_URL="https://raw.githubusercontent.com/BroosCraft09/Oalie-CLI/main/oalie-cli.sh"
+    
+    # Backup current version
+    cp "$OALIE_HOME/start-oalie.sh" "$OALIE_HOME/start-oalie.sh.backup" 2>/dev/null
+    cp "$0" "$OALIE_HOME/oalie-cli.sh.backup" 2>/dev/null
+    
+    # Download new version
+    if command -v curl >/dev/null; then
+        curl -s -o "$OALIE_HOME/start-oalie.sh.new" "$SCRIPT_URL"
+        curl -s -o "$OALIE_HOME/oalie-cli.sh.new" "$MAIN_SCRIPT_URL"
+    elif command -v wget >/dev/null; then
+        wget -q -O "$OALIE_HOME/start-oalie.sh.new" "$SCRIPT_URL"
+        wget -q -O "$OALIE_HOME/oalie-cli.sh.new" "$MAIN_SCRIPT_URL"
+    else
+        echo "❌ Need curl or wget for auto-update"
+        return 1
+    fi
+    
+    # Verify download
+    if [ -s "$OALIE_HOME/start-oalie.sh.new" ] && [ -s "$OALIE_HOME/oalie-cli.sh.new" ]; then
+        # Replace old files
+        mv "$OALIE_HOME/start-oalie.sh.new" "$OALIE_HOME/start-oalie.sh"
+        mv "$OALIE_HOME/oalie-cli.sh.new" "$OALIE_HOME/oalie-cli.sh"
+        chmod +x "$OALIE_HOME/start-oalie.sh" "$OALIE_HOME/oalie-cli.sh"
+        
+        echo "✅ Update successful! Restarting Oalie CLI..."
+        sleep 2
+        exec "$OALIE_HOME/start-oalie.sh"
+    else
+        echo "❌ Update failed! Restoring backup..."
+        cp "$OALIE_HOME/start-oalie.sh.backup" "$OALIE_HOME/start-oalie.sh" 2>/dev/null
+        cp "$OALIE_HOME/oalie-cli.sh.backup" "$OALIE_HOME/oalie-cli.sh" 2>/dev/null
+        return 1
+    fi
+}
+
 # ====== Update Check Function ======
 check_update() {
     echo "🔍 Checking for updates..."
     
+    # URL untuk file version.txt di branch main (RAW GITHUB CONTENT)
+    VERSION_URL="https://raw.githubusercontent.com/BroosCraft09/Oalie-CLI/main/version.txt"
+    
     # Try to get latest version from GitHub
-    LATEST_VERSION=$(curl -s "https://raw.githubusercontent.com/BroosCraft09/Oalie-CLI/main/version.txt" 2>/dev/null)
+    LATEST_VERSION=$(curl -s "$VERSION_URL" 2>/dev/null)
     
     if [ -z "$LATEST_VERSION" ]; then
-        LATEST_VERSION=$(wget -qO- "https://raw.githubusercontent.com/BroosCraft09/Oalie-CLI/main/version.txt" 2>/dev/null)
+        LATEST_VERSION=$(wget -qO- "$VERSION_URL" 2>/dev/null)
     fi
     
     if [ -z "$LATEST_VERSION" ]; then
@@ -51,10 +96,22 @@ check_update() {
         return 1
     fi
     
+    # Clean version string
+    LATEST_VERSION=$(echo "$LATEST_VERSION" | tr -d '[:space:]')
+    
     if [ "$LATEST_VERSION" != "$VERSION" ]; then
         echo "🎉 New version available: v$LATEST_VERSION"
         echo "📥 Download from: $GITHUB_REPO"
         echo "💡 Current version: v$VERSION"
+        
+        # Auto-update prompt
+        read -p "Do you want to update automatically? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            auto_update
+        else
+            echo "You can update manually from: $GITHUB_REPO"
+        fi
     else
         echo "✅ You have the latest version: v$VERSION"
     fi
@@ -82,8 +139,17 @@ oalie-cd() {
         cd "$OALIE_HOME"
         echo "📁 Changed to Oalie root directory"
     else
-        # Regular cd functionality
-        cd "$1" 2>/dev/null || echo "❌ Directory not found: $1"
+        # Enhanced path handling
+        if [ "${1:0:1}" == "/" ]; then
+            # Absolute path
+            cd "$1" 2>/dev/null || echo "❌ Directory not found: $1"
+        elif [ "${1:0:1}" == "~" ]; then
+            # Home directory
+            cd "$1" 2>/dev/null || echo "❌ Directory not found: $1"
+        else
+            # Relative path from current directory
+            cd "./$1" 2>/dev/null || echo "❌ Directory not found: $1"
+        fi
     fi
 }
 
@@ -112,7 +178,7 @@ show_banner() {
    ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝
 EOF
     echo "========================================"
-    echo "   Oalie CLI v$VERSION - Advanced Edition"
+    echo "   Oalie CLI v$VERSION - Enhanced Edition"
     echo "========================================"
     echo "User    : $USERNAME"
     echo "Date    : $(date '+%Y-%m-%d %H:%M:%S')"
@@ -127,6 +193,7 @@ oalie-ver() {
     echo "Custom commands directory: $CUSTOM_CMD_DIR"
     echo "Oalie home directory: $OALIE_HOME_DIR"
     echo "GitHub: $GITHUB_REPO"
+    echo "Auto-update: Available (check with oalie-update)"
 }
 
 oalie-help() {
@@ -136,7 +203,7 @@ oalie-help() {
     echo "oalie-uptime    : System uptime"
     echo "oalie-sys       : System information"
     echo "oalie-clear     : Clear screen + reload"
-    echo "oalie-update    : Check for updates"
+    echo "oalie-update    : Check and auto-update"
     echo "oalie-cd [dir]  : Enhanced cd command"
     echo "oalie-pkg list  : List packages"
     echo "oalie-theme     : Change theme/colors"
@@ -189,6 +256,7 @@ oalie-sys() {
     echo "Home     : $OALIE_HOME_DIR"
     echo "Custom   : $(ls "$CUSTOM_CMD_DIR" 2>/dev/null | wc -l) commands"
     echo "GitHub   : $GITHUB_REPO"
+    echo "Update   : Auto-update available"
 }
 
 oalie-clear() {
@@ -486,12 +554,14 @@ oalie-prompt() {
             continue
         fi
         
-        # Execute system command
-        if eval "$CMD" 2>/dev/null; then
+        # Enhanced command execution with better error handling
+        if command -v "$CMD" >/dev/null 2>&1; then
+            eval "$CMD"
+        elif eval "$CMD" 2>/dev/null; then
             continue
         else
-            echo "Command not found: $CMD"
-            echo "Type 'oalie-help' for available commands"
+            echo "❌ Command not found: $CMD"
+            echo "💡 Type 'oalie-help' for Oalie commands"
         fi
     done
 }
@@ -499,11 +569,11 @@ oalie-prompt() {
 # ====== Welcome Message ======
 show_welcome() {
     echo "✨ New in v$VERSION:"
-    echo "   🏠 Oalie Home Directory"
-    echo "   🔄 Update Checker"
-    echo "   🎨 Theme System"
-    echo "   💾 Backup/Restore"
-    echo "   📁 Enhanced Navigation"
+    echo "   🚀 Auto-Update System"
+    echo "   🐛 Bug Fixes & Improvements"
+    echo "   🏠 Enhanced Home Directory"
+    echo "   🔄 Better Update Checking"
+    echo "   📁 Improved Navigation"
     echo ""
     echo "📖 GitHub: $GITHUB_REPO"
     echo ""
