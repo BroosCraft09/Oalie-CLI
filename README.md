@@ -1,4 +1,4 @@
-# Oalie CLI v1.4 
+# Oalie CLI v1.5
 
 # 🚀 Quick Start
 
